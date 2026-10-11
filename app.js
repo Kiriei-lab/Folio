@@ -58,26 +58,99 @@ function renderLibrary(){
   if(!list.length && books.length && query) $("bookGrid").innerHTML='<p class="tiny-note">No books match that search.</p>';
 }
 async function importFiles(fileList){
-  const files=Array.from(fileList||[]);
-  for(const file of files){
-    if(!file.name.toLowerCase().endsWith(".epub")){toast("Please choose an EPUB file.");continue;}
-    try{
-      const buffer=await file.arrayBuffer();
-      let title=file.name.replace(/\.epub$/i,""),author="Unknown author",identifier=crypto.randomUUID();
-      if(window.ePub){
-        const temp=ePub(buffer);
-        try{
-          const meta=await temp.loaded.metadata;
-          title=meta.title||title;author=meta.creator||author;identifier=meta.identifier||identifier;
-          temp.destroy();
-        }catch(_){}
-      }
-      const id=crypto.randomUUID();
-      await saveBook({id,title,author,identifier,buffer,added:Date.now(),progress:0,cfi:null,bookmarks:[],highlights:[],notes:[]});
-      toast(`Added “${title}”`);
-    }catch(err){console.error(err);toast("Could not import this EPUB. Try another file.");}
+  
+function makeId() {
+  if (window.crypto && typeof window.crypto.randomUUID === "function") {
+    return window.crypto.randomUUID();
   }
-  books=await getAll();renderLibrary();$("epubInput").value="";
+  return "folio-" + Date.now() + "-" +
+    Math.random().toString(36).slice(2);
+}
+
+async function readFileBuffer(file) {
+  if (typeof file.arrayBuffer === "function") {
+    return await file.arrayBuffer();
+  }
+
+  return await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () =>
+      reject(reader.error || new Error("Could not read the file"));
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+async function importFiles(fileList) {
+  const files = Array.from(fileList || []);
+
+  for (const file of files) {
+    if (!file.name.toLowerCase().endsWith(".epub")) {
+      toast("Please choose an EPUB file.");
+      continue;
+    }
+
+    try {
+      if (!db) {
+        throw new Error("Local database is not ready. Refresh Folio.");
+      }
+
+      const buffer = await readFileBuffer(file);
+      let title = file.name.replace(/\.epub$/i, "");
+      let author = "Unknown author";
+      let identifier = makeId();
+
+      if (window.ePub) {
+        let temp;
+        try {
+          temp = ePub(buffer);
+          await temp.open(buffer);
+          const meta = await temp.loaded.metadata;
+          title = meta.title || title;
+          author = meta.creator || author;
+          identifier = meta.identifier || identifier;
+        } catch (metadataError) {
+          console.warn("EPUB metadata could not be read:", metadataError);
+        } finally {
+          if (temp) {
+            try { temp.destroy(); } catch (_) {}
+          }
+        }
+      }
+
+      const book = {
+        id: makeId(),
+        title,
+        author,
+        identifier,
+        buffer,
+        added: Date.now(),
+        progress: 0,
+        cfi: null,
+        bookmarks: [],
+        highlights: [],
+        notes: []
+      };
+
+      await saveBook(book);
+      toast("Added: " + title);
+    } catch (err) {
+      console.error("Folio import failed:", err);
+      const detail = (err && err.name ? err.name + ": " : "") +
+        (err && err.message ? err.message : String(err));
+      toast("Import failed — " + detail);
+    }
+  }
+
+  try {
+    books = await getAll();
+    renderLibrary();
+  } catch (err) {
+    console.error("Could not refresh bookshelf:", err);
+    toast("Book saved, but bookshelf refresh failed.");
+  }
+
+  $("epubInput").value = "";
 }
 async function openReader(id){
   const item=books.find(b=>b.id===id);if(!item)return;
