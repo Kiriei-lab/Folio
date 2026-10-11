@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f4efe6">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Folio">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles.css">
+  <title>Folio — Your reading room</title>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <button class="brand" id="homeButton" aria-label="Go to library"><span class="brand-mark">f.</span><span>folio</span></button>
+      <div class="top-actions">
+        <button class="icon-button" id="searchToggle" aria-label="Search library">⌕</button>
+        <button class="icon-button" id="settingsToggle" aria-label="Reader settings">⚙</button>
+      </div>
+    </header>
+
+    <main id="libraryView">
+      <section class="welcome">
+        <p class="eyebrow">YOUR PERSONAL READING ROOM</p>
+        <h1>A little more<br><em>room to read.</em></h1>
+        <p class="welcome-copy">Your books, your pace, your rules.</p>
+        <label class="import-button" for="epubInput">＋ Add an EPUB</label>
+        <input id="epubInput" type="file" accept=".epub,application/epub+zip" multiple hidden>
+        <p class="tiny-note">EPUB files stay in this browser on this device.</p>
+      </section>
+
+      <section class="library-section">
+        <div class="section-heading">
+          <div><p class="eyebrow">THE COLLECTION</p><h2>Your library <span id="bookCount" class="count">0</span></h2></div>
+          <select id="sortSelect" aria-label="Sort books">
+            <option value="recent">Recently added</option>
+            <option value="title">Title A–Z</option>
+            <option value="progress">Reading progress</option>
+          </select>
+        </div>
+        <div id="searchBar" class="search-bar hidden"><input id="librarySearch" type="search" placeholder="Search your library…"><button id="clearSearch">×</button></div>
+        <div id="bookGrid" class="book-grid"></div>
+        <div id="emptyState" class="empty-state">
+          <div class="empty-icon">✳</div>
+          <h3>Your next favourite is waiting.</h3>
+          <p>Add an EPUB file to begin building your library.</p>
+        </div>
+      </section>
+      <footer><span>FOLIO · MADE FOR SLOW READING</span><button id="exportButton" class="text-button">Export library backup</button></footer>
+    </main>
+
+    <section id="readerView" class="reader-view hidden" aria-label="EPUB reader">
+      <div class="reader-toolbar">
+        <button id="backToLibrary" class="back-button">← Library</button>
+        <div class="reader-book-title" id="readerBookTitle">Book title</div>
+        <div class="reader-tools">
+          <button id="tocToggle" class="icon-button" aria-label="Table of contents">☷</button>
+          <button id="readerSettingsToggle" class="icon-button" aria-label="Reading settings">Aa</button>
+          <button id="bookmarkButton" class="icon-button" aria-label="Bookmark this location">♧</button>
+        </div>
+      </div>
+      <div class="reading-layout">
+        <aside id="tocPanel" class="toc-panel hidden">
+          <div class="panel-heading"><h3>Contents</h3><button id="closeToc" class="icon-button">×</button></div>
+          <div id="tocList"></div>
+          <div class="panel-divider"></div>
+          <h3>Bookmarks</h3><div id="bookmarkList" class="bookmark-list"></div>
+        </aside>
+        <div class="reader-main">
+          <div id="readerStage" class="reader-stage"><div id="epubMount"></div><div id="readerLoading">Opening your book…</div></div>
+          <div class="reader-bottom">
+            <button id="prevChapter" class="nav-button" aria-label="Previous page">‹</button>
+            <div class="progress-area">
+              <div class="progress-label"><span id="locationLabel">Ready when you are</span><span id="percentLabel">0%</span></div>
+              <input id="progressSlider" type="range" min="0" max="1000" value="0" aria-label="Reading progress">
+            </div>
+            <button id="nextChapter" class="nav-button" aria-label="Next page">›</button>
+          </div>
+        </div>
+      </div>
+      <div id="settingsPanel" class="settings-panel hidden">
+        <div class="panel-heading"><h3>Reading appearance</h3><button id="closeSettings" class="icon-button">×</button></div>
+        <label>Theme
+          <div class="theme-options">
+            <button data-theme="paper" class="theme-chip active">Paper</button>
+            <button data-theme="light" class="theme-chip">Light</button>
+            <button data-theme="sepia" class="theme-chip">Sepia</button>
+            <button data-theme="dark" class="theme-chip">Dark</button>
+          </div>
+        </label>
+        <label>Text size <span id="fontSizeValue">100%</span><input id="fontSize" type="range" min="80" max="160" value="100"></label>
+        <label>Line spacing <span id="lineHeightValue">1.7</span><input id="lineHeight" type="range" min="13" max="23" value="17"></label>
+        <label>Page width <span id="widthValue">720 px</span><input id="pageWidth" type="range" min="480" max="1000" step="20" value="720"></label>
+        <p class="settings-note">Your appearance preferences are saved on this device.</p>
+      </div>
+    </section>
+    <div id="toast" class="toast" role="status"></div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/epubjs@0.3.93/dist/epub.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+{
+  "name": "Folio EPUB Reader",
+  "short_name": "Folio",
+  "description": "A personal reading room for your EPUB library.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f4efe6",
+  "theme_color": "#f4efe6",
+  "orientation": "any",
+  "icons": []
+}
